@@ -1,10 +1,11 @@
 from datetime import datetime
 from enum import Enum
+import json
 
 class ContactType(Enum):
-    type1 = 'Contact type 1'
-    type2 = 'Contact type 2'
-    type3 = 'Contact type 3'
+    Contact_type_1 = 1
+    Contact_type_2 = 2
+    Contact_type_3 = 3
 
 class Contact(object):
     id: int

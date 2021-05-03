@@ -1,7 +1,10 @@
+from ..entities.contact import Contact, ContactType
+import json
+from ..repositories.contact_repository import IContactRepository
 from datetime import datetime
 from flask import Blueprint
 from flask.json import jsonify
-import inject
+from injector import inject
 from marshmallow import fields, validate
 from webargs.flaskparser import use_args, use_kwargs
 
@@ -12,9 +15,19 @@ contact_resources = Blueprint(
 # contact_resources.json_encoder = FlaskCustomJsonEncoder
 # enable_cors(contact_resources)
 
+class ContactJsonEncoder(json.JSONEncoder):
+    @staticmethod
+    def to_json(obj: Contact):
+        return {
+              'name': obj.name,
+              'birthdate': obj.birthdate.strftime('%Y-%m-%d'),
+              'contact_type': obj.contact_type.value,
+              'description': obj.description,
+            }
+
 @contact_resources.route("/", methods=["GET"])
-@inject.autoparams()
-def list(*args, **kwargs):
+@inject
+def list( contact_repo: IContactRepository, *args, **kwargs):
     """List all Contacts.
     ---
     tags:
@@ -48,24 +61,12 @@ def list(*args, **kwargs):
                 $ref: '#/definitions/Contact'
     """
 
-    example_contact = {
-        'name': 'Name',
-        'birthdate': datetime(2021,2,12),
-        'contact_type': 'type1',
-        'description': 'Description of the Contact',
-    }
-    contacts = [example_contact]
-    return jsonify(contacts)
+    contacts = contact_repo.list()
+    return jsonify([ContactJsonEncoder.to_json(x) for x in contacts])
 
 @contact_resources.route("/<id>", methods=["GET"])
-@use_kwargs(
-    {
-        "id":
-        fields.Int(required=True)
-    },
-    error_status_code=400)
-@inject.autoparams()
-def get(*args, **kwargs):
+@inject
+def get(contact_repo: IContactRepository,*args, **kwargs):
     """Get a Contact by his ID.
     ---
     tags:
@@ -83,13 +84,11 @@ def get(*args, **kwargs):
         schema:
           $ref: '#/definitions/Contact'
     """
-    contact = {
-        'name': 'Name',
-        'birthdate': '2021-02-01',
-        'contact_type': 'type1',
-        'description': 'Description od the Contact',
-    }
-    return contact
+    id = kwargs['id']
+    contact = contact_repo.get(id)
+    if contact is not None:
+        return ContactJsonEncoder.to_json(contact)
+    return None
 
 @contact_resources.route("/", methods=["POST"])
 @use_kwargs(
@@ -104,8 +103,8 @@ def get(*args, **kwargs):
         fields.Str(required=False)
     },
     error_status_code=400)
-@inject.autoparams()
-def create(*args, **kwargs):
+@inject
+def create(contact_repo: IContactRepository,*args, **kwargs):
     """Create a new Contact.
     ---
     tags:
@@ -130,7 +129,7 @@ def create(*args, **kwargs):
             contact_type:
               type: string
               enum: ['type1', 'type2', 'type3']
-              example: 'type1
+              example: 'type1'
             description:
               type: string
     definitions:
@@ -149,10 +148,22 @@ def create(*args, **kwargs):
         schema:
           $ref: '#/definitions/StatusResponse'
     """
-    return {
-        'status': True,
-        'description': 'Contact Created successfully.'
-    }
+    name = kwargs['name']
+    birthdate = kwargs['birthdate']
+    contact_type = kwargs['contact_type']
+    description = kwargs['description'] if 'description' in kwargs else None
+    contact = Contact(name,birthdate,contact_type,description)
+    result = contact_repo.create(contact)
+    if result:
+        return {
+          'status': True,
+          'description': 'Contact Created successfully.'
+      }
+    else:
+          return {
+          'status': False,
+          'description': 'Error occurred when creating Contact.'
+      }
 
 @contact_resources.route("/<id>", methods=["PUT"])
 @use_kwargs(
@@ -167,7 +178,7 @@ def create(*args, **kwargs):
         fields.Str(required=False)
     },
     error_status_code=400)
-@inject.autoparams()
+@inject
 def update(*args, **kwargs):
     """Update an existed Contact.
     ---
@@ -193,7 +204,7 @@ def update(*args, **kwargs):
             contact_type:
               type: string
               enum: ['type1', 'type2', 'type3']
-              example: 'type1
+              example: 'type1'
             description:
               type: string
     responses:
@@ -220,7 +231,7 @@ def update(*args, **kwargs):
         fields.Str(required=False)
     },
     error_status_code=400)
-@inject.autoparams()
+@inject
 def delete(*args, **kwargs):
     """Create a new Contact.
     ---

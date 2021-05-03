@@ -1,0 +1,35 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+        MYSQL_DATABASE: contactdb
+        MYSQL_USER: admin
+        MYSQL_PASSWORD: admin123*
+        MYSQL_ROOT_PASSWORD: admin123*
+    ports:
+      - "3306:3306"
+  backend-api:
+    image: backend-api
+    build:
+      context: backend/client_api
+      args:
+        http_proxy: http://192.168.44.244:3128
+        https_proxy: http://192.168.44.244:3128
+    restart: always
+    volumes:
+      - ./backend/client_api:/usr/src/app
+    environment:
+      - SECRET_KEY=A0Zr98j/3yX R~XHH!jmN]LWX/,?RT
+      - DEBUG=True
+      - DATABASE_NAME=contactdb
+      - DATABASE_USER=admin
+      - DATABASE_PASSWORD=admin123*
+      - DATABASE_HOST=db
+      - DATABASE_PORT=3306
+      - SQLALCHEMY_TRACK_MODIFICATIONS=False
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
