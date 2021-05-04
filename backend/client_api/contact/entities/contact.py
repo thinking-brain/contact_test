@@ -13,9 +13,12 @@ class Contact(object):
     birthdate: datetime
     contact_type: ContactType
     description: str
+    phone: str
 
-    def __init__(self, name: str, birthdate: datetime,contact_type: ContactType, description: str):
+    def __init__(self, id: int, name: str, birthdate: datetime,contact_type: ContactType, description: str, phone: str):
+        self.id = id
         self.name = name
         self.birthdate = birthdate
         self.contact_type = contact_type
         self.description = description
+        self.phone = phone

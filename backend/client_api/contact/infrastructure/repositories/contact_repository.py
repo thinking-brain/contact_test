@@ -11,7 +11,7 @@ class ContactRepository(IContactRepository):
 
     def list(self) -> List[Contact]:
         data=ContactSet.query.all()
-        contacts = [Contact(x.name,x.birthdate,x.contact_type,x.description) for x in data]
+        contacts = [Contact(x.id,x.name,x.birthdate,x.contact_type,x.description, x.phone) for x in data]
         return contacts
 
 
@@ -22,11 +22,11 @@ class ContactRepository(IContactRepository):
             id (int): ID of the Contact
 
         Returns:
-            Contact: Contact if is found
+            Contact: Contact if was found
         """
         data=ContactSet.query.get(id)
         if data:
-            contact = Contact(data.name,data.birthdate,data.contact_type,data.description)
+            contact = Contact(data.id,data.name,data.birthdate,data.contact_type,data.description, data.phone)
             return contact
         return None
 
@@ -37,33 +37,58 @@ class ContactRepository(IContactRepository):
             contact (Contact): Contact object to persist in the database
 
         Returns:
-            bool: True or False if the persist operation is successfull
+            bool: True or False if the persist operation was successfull
         """
         try:
             contact_new=ContactSet(name=contact.name,birthdate=contact.birthdate
-                ,contact_type=contact.contact_type, description=contact.description)
+                ,contact_type=contact.contact_type, description=contact.description, phone=contact.phone)
             db.session.add(contact_new)
             db.session.commit()
             return True
         except Exception as ex:
-            app.logger.error('Error creating a new Contact'.format(ex))
+            app.logger.error('Error creating a new Contact. {}'.format(ex))
             return False
 
     def update(self, id, contact: Contact) -> bool:
         """Update the Contact
 
-        Raises:
-            NotImplementedError: If not Implemented
+        Args:
+            id (int): ID of the Contact object to update
+            contact (Contact): Contact object to update in the database
+
+        Returns:
+            bool: True or False if the update operation was successfull
         """
-        raise NotImplementedError
+        try:
+            data=ContactSet.query.get(id)
+            data.name = contact.name
+            data.birthdate = contact.birthdate
+            data.contact_type = contact.contact_type
+            data.description = contact.description
+            data.phone = contact.phone
+            db.session.commit()
+            return True
+        except Exception as ex:
+            app.logger.error('Error updating a Contact. {}'.format(ex))
+            return False
 
     def delete(self, id) -> bool:
         """Delete the Contact
 
-        Raises:
-            NotImplementedError: If not Implemented
+        Args:
+            id (int): ID of the Contact object to delete
+
+        Returns:
+            bool: True or False if the delete operation was successfull
         """
-        raise NotImplementedError
+        try:
+            data=ContactSet.query.get(id)
+            db.session.delete(data)
+            db.session.commit()
+            return True
+        except Exception as ex:
+            app.logger.error('Error deleting a Contact. {}'.format(ex))
+            return False
 
 
 class ContactSet(db.Model):
@@ -73,16 +98,8 @@ class ContactSet(db.Model):
     name = Column(String(100), nullable=False)
     birthdate = Column(Date, nullable=False)
     contact_type = Column(Enum(ContactType), nullable=False)
-    description = Column(Text)
-
-    # CategoriaId=Column(Integer,ForeignKey('categorias.id'), nullable=False)
-    # categoria = relationship("Categorias", backref="Articulos")
-
-    # def __init__(self, name: str, birthdate: datetime,contact_type: ContactType, description: str):
-    #     self.name = name
-    #     self.birthdate = birthdate
-    #     self.contact_type = contact_type
-    #     self.description = description
+    description = Column(Text,nullable=True)
+    phone = Column(Text,nullable=True)
 
     def __repr__(self):
         return (u'<{self.__class__.__name__}: {self.id}>'.format(self=self))
