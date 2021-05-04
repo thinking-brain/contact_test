@@ -8,15 +8,10 @@ services:
         MYSQL_USER: admin
         MYSQL_PASSWORD: admin123*
         MYSQL_ROOT_PASSWORD: admin123*
-    ports:
-      - "3306:3306"
   backend-api:
     image: backend-api
     build:
       context: backend/client_api
-      args:
-        http_proxy: http://192.168.44.244:3128
-        https_proxy: http://192.168.44.244:3128
     restart: always
     volumes:
       - ./backend/client_api:/usr/src/app
@@ -33,3 +28,14 @@ services:
       - db
     ports:
       - "5000:5000"
+  client-app:
+    image: client-app
+    build:
+      context: frontend/isucorp
+    restart: always
+    environment:
+      - API_SERVER=backend-api
+    depends_on:
+      - backend-api
+    ports:
+      - "80:80"
