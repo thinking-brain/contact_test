@@ -1,0 +1,8 @@
+<h1 mat-dialog-title>Delete Contact confirmation</h1>
+<div mat-dialog-content>
+  <p>Are you sure to delete this contact?</p>
+</div>
+<div mat-dialog-actions>
+  <button mat-raised-button color="accent" (click)="onNoClick()">No</button>
+  <button mat-raised-button (click)="confirm()" cdkFocusInitial>Yes, please</button>
+</div>

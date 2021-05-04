@@ -1,0 +1,24 @@
+:host ::ng-deep .ck-editor__editable_inline {
+  min-height: 200px;
+}
+
+
+mat-form-field {
+  padding: 10px;
+}
+
+button{
+  margin: 10px;
+}
+
+@media screen and (min-width : 962px) {
+  mat-card{
+    margin: 25px;
+  }
+}
+
+@media screen and (max-width : 648px) {
+  mat-form-field {
+    width: 90%;
+  }
+}

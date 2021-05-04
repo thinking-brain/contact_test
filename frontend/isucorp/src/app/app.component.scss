@@ -1,0 +1,26 @@
+mat-sidenav-container {
+  height: 100%;
+}
+
+mat-sidenav {
+  width: 240px;
+}
+
+mat-sidebar-container {
+  position: absolute;
+  top: 60px;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+}
+
+@media screen and (min-width : 962px) {
+
+  mat-sidenav-content {
+      margin-left: 240px;
+  }
+}
+
+.example-spacer {
+  flex: 1 1 auto;
+}
